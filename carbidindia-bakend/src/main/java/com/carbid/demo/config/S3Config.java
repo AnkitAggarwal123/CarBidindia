@@ -17,6 +17,8 @@ public class S3Config {
     @Value("${SECRET_KEY}")
     private String secretKey;
 
+
+
     @Value("${AWS_REGION}")
     private String region;
     @Bean
