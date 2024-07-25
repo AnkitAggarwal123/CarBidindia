@@ -27,4 +27,4 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
-      run: mvn -B package --file CarBidindia/pom.xml
+      run: mvn -B package --file carbidindia-bakend/pom.xml
