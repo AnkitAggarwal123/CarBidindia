@@ -26,7 +26,7 @@ public class CarDto {
     private String location;
     private String vehicleDetail;
     private boolean visible;
-    private String rcType;
+//    private String rcType;
 
 //    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime auctionEndTime;

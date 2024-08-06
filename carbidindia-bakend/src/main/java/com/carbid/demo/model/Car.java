@@ -19,6 +19,8 @@ public class Car extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String carName;
+
+    @Column(unique = true)
     private String registrationNumber;
     private Integer ownerNumber;
     private Integer modelNumber;
@@ -30,7 +32,7 @@ public class Car extends BaseEntity {
     @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CarImage> carImages;
     private boolean visible;
-    private String rcType;
+//    private String rcType;
     private LocalDateTime auctionEndTime;
 
 

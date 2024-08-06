@@ -32,10 +32,12 @@ public class CarController_Admin {
 
 
     @PostMapping("car")
-    public ResponseEntity<?> addCar(@RequestBody CarDto carDto){
+    public ResponseEntity<?> addCar(@RequestBody CarDto carDto) {
         try {
-           Car car =  carService.addCar(carDto);
+            Car car = carService.addCar(carDto);
             return ResponseEntity.ok(car);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error adding car");
@@ -54,34 +56,5 @@ public class CarController_Admin {
 
     }
 
-//    @PostMapping("/car")
-//    public ResponseEntity<String> addCar(
-//            @RequestParam("carDto") String carDtoJson,
-//            @RequestParam("files") List<MultipartFile> files) {
-//        try {
-//            // Convert carDtoJson to CarDto object
-//            ObjectMapper objectMapper = new ObjectMapper();
-//            CarDto carDto = objectMapper.readValue(carDtoJson, CarDto.class);
-//
-//            carService.addCar(carDto, files);
-//            return ResponseEntity.ok("Car added successfully");
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error adding car");
-//        }
-//    }
-
-//        @PostMapping("/car")
-//    public ResponseEntity<String> addCar(
-//                @ModelAttribute CarDto carDto,
-//            @RequestParam("files") List<MultipartFile> files) {
-//        try {
-//            carService.addCar(carDto, files);
-//            return ResponseEntity.ok("Car added successfully");
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error adding car");
-//        }
-//    }
 
 }

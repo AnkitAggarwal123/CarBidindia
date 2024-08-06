@@ -5,6 +5,7 @@ import com.carbid.demo.jwt.JwtUtils;
 import com.carbid.demo.jwt.LoginRequest;
 import com.carbid.demo.jwt.LoginResponse;
 import com.carbid.demo.model.User;
+import com.carbid.demo.service.RequestUserService;
 import com.carbid.demo.service.customUserService;
 import com.carbid.demo.service.userService;
 import jakarta.validation.Valid;
@@ -45,9 +46,12 @@ public class UserController_genric {
     @Autowired
     customUserService customUser;
 
+    @Autowired
+    RequestUserService requestUserService;
+
     @PostMapping("/create/user")
     public ResponseEntity<String> createUser(@Valid @RequestBody UserDto userDto) {
-        String message = userSer.createUser(userDto);
+        String message = requestUserService.createUser(userDto);
         System.out.println("Response Message: " + message);
         return new ResponseEntity<>(message, HttpStatus.CREATED);
     }

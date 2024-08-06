@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,12 +34,16 @@ public class CarService {
     private S3Service s3Service;
 
     public Car addCar(CarDto carDto) {
+        // Check if a car with the same registration number already exists
+        Optional<Car> existingCar = carRepo.findByRegistrationNumber(carDto.getRegistrationNumber());
+        if (existingCar.isPresent()) {
+            throw new IllegalArgumentException("Car with registration number " + carDto.getRegistrationNumber() + " already exists");
+        }
 
         Car car = new Car();
         car.setCarName(carDto.getCarName());
         car.setFuelType(carDto.getFuelType());
         car.setLocation(carDto.getLocation());
-        car.setRcType(carDto.getRcType());
         car.setAuctionEndTime(carDto.getAuctionEndTime());
         car.setVisible(carDto.isVisible());
         car.setModelNumber(carDto.getModelNumber());
@@ -47,7 +52,6 @@ public class CarService {
         car.setVehicleDetail(carDto.getVehicleDetail());
         car.setRegistrationNumber(carDto.getRegistrationNumber());
         return carRepo.save(car);
-
     }
 
     public String uploadImage(List<MultipartFile> files, Long id){
@@ -74,7 +78,6 @@ public class CarService {
                     carDto.setFuelType(car.getFuelType());
                     carDto.setModelNumber(car.getModelNumber());
                     carDto.setOwnerNumber(car.getOwnerNumber());
-                    carDto.setRcType(car.getRcType());
                     carDto.setRegistrationNumber(car.getRegistrationNumber());
                     carDto.setAuctionEndTime(car.getAuctionEndTime());
                     carDto.setVehicleDetail(car.getVehicleDetail());
