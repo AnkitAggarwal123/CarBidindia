@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @PreAuthorize("hasRole('USER')")
@@ -34,9 +35,8 @@ public class BidController {
 
     // with paper
     @PostMapping("/bids")
-    public ResponseEntity<String> placeBid(@RequestBody BidDto bidDto, Principal principal) {
-        String bid = bidServices.placeBid(bidDto, principal.getName());
-        return ResponseEntity.ok(bid);
+    public Map<String, Object> placeBid(@RequestBody BidDto bidDto, Principal principal) {
+        return bidServices.placeBid(bidDto, principal.getName());
     }
 
 
@@ -45,10 +45,10 @@ public class BidController {
         return bidServices.getAllCarBidCountsForUser(principal.getName());
     }
 
-    @GetMapping("/maximum/amount/{carId}/{fetchedAmount}")
-    public boolean isMaximum(@PathVariable Long carId, @PathVariable BigDecimal fetchedAmount){
-        return bidServices.isMaxBidForCar(carId, fetchedAmount);
-    }
+//    @GetMapping("/maximum/amount/{carId}")
+//    public BigDecimal maximumBid(@PathVariable Long carId){
+//        return bidServices.maximumBid(carId);
+//    }
 
     @GetMapping("winning/bids/withPaper")
     public List<CommonBidDto> getWinningBidWithPaper(Principal principal){
@@ -65,10 +65,9 @@ public class BidController {
     // without paper bid
 
     @PostMapping("/bids/withoutPaper")
-    public ResponseEntity<String> placeBidWithoutPaper(@RequestBody BidDto bidDto, Principal principal) {
+    public Map<String, Object> placeBidWithoutPaper(@RequestBody BidDto bidDto, Principal principal) {
         System.out.println(principal.getName());
-        String bid = bidServicesWithoutPaper.placeBid(bidDto, principal.getName());
-        return ResponseEntity.ok(bid);
+        return bidServicesWithoutPaper.placeBid(bidDto, principal.getName());
     }
 
     @GetMapping("/bid/count/withoutPaper")

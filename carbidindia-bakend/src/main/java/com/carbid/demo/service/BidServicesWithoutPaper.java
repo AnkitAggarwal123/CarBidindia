@@ -14,13 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
+import java.util.*;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,22 +57,33 @@ public class BidServicesWithoutPaper {
 
 
     @Transactional
-    public String placeBid(BidDto bidDto, String userName) {
-        User user = iUser.findByEmail(userName);
+    public Map<String, Object> placeBid(BidDto bidDto, String userName) {
+        Map<String, Object> response = new HashMap<>();
 
+        User user = iUser.findByEmail(userName);
 
         Car car = iCar.findById(bidDto.getCarId())
                 .orElseThrow(() -> new RuntimeException("Car not found"));
+
+        if (car.getAuctionEndTime().isBefore(LocalDateTime.now())) {
+            response.put("message", "The auction for this car has ended");
+            response.put("isMaxBid", false);
+            return response;
+        }
 
         // Retrieve all bids placed by the user on the specific car
         List<BidWithoutPaper> userBids = iBidWithoutPaper.findAllByCarIdAndUserId( car.getId(), user.getId());
 
         // Check if the user has already placed 20 bids on this car
         if (userBids.size() >= 20) {
-            return "You have reached the maximum number of bids for this car";
+            response.put("message", "You have reached the maximum number of bids for this car");
+            response.put("isMaxBid", false);
+            return response;
         }
 
-        // Create a new BidWithPaper instance
+        boolean isMaxBid = isMaxBidForWithoutPaperCar(bidDto.getCarId(), bidDto.getAmount());
+
+
         BidWithoutPaper bid = new BidWithoutPaper();
         bid.setAmount(bidDto.getAmount());
         bid.setUser(user);
@@ -84,7 +93,26 @@ public class BidServicesWithoutPaper {
         // Save the bid
         iBidWithoutPaper.save(bid);
 
-        return "Bid placed successfully of withoutPaper";
+        response.put("message", "Bid placed successfully");
+        response.put("isMaxBid", isMaxBid);
+        return response;
+    }
+
+    public boolean isMaxBidForWithoutPaperCar(Long carId, BigDecimal fetchedAmount) {
+        List<BidWithoutPaper> bids = iBidWithoutPaper.findAllByCarId(carId);
+
+        if (bids.isEmpty()) {
+            return true; // No bids for this car, so fetchedAmount is the maximum by default
+        }
+
+        // Find the maximum bid amount for the car
+        BigDecimal maxBidAmount = bids.stream()
+                .map(BidWithoutPaper::getAmount)
+                .max(BigDecimal::compareTo)
+                .orElse(BigDecimal.ZERO); // Default to zero if no bids found (though it should not happen due to isEmpty check)
+
+        // Compare fetchedAmount with the maximum bid amount for the car
+        return fetchedAmount.compareTo(maxBidAmount) > 0;
     }
 
     public List<CarBidCountDTO> getAllCarBidCountsForUser(String userName) {

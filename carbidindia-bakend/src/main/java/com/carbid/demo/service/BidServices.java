@@ -15,10 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,14 +34,18 @@ public class BidServices {
     IWinnerWithPaper iWinnerWithPaper;
 
     @Transactional
-    public String placeBid(BidDto bidDto, String userName) {
+    public Map<String, Object> placeBid(BidDto bidDto, String userName) {
+        Map<String, Object> response = new HashMap<>();
+
         User user = iUser.findByEmail(userName);
 
         Car car = iCar.findById(bidDto.getCarId())
                 .orElseThrow(() -> new RuntimeException("Car not found"));
 
         if (car.getAuctionEndTime().isBefore(LocalDateTime.now())) {
-            return "The auction for this car has ended";
+            response.put("message", "The auction for this car has ended");
+            response.put("isMaxBid", false);
+            return response;
         }
 
         // Retrieve all bids placed by the user on the specific car
@@ -52,9 +53,12 @@ public class BidServices {
 
         // Check if the user has already placed 20 bids on this car
         if (userBids.size() >= 20) {
-            return "You have reached the maximum number of bids for this car";
+            response.put("message", "You have reached the maximum number of bids for this car");
+            response.put("isMaxBid", false);
+            return response;
         }
 
+        boolean isMaxBid = isMaxBidForCar(bidDto.getCarId(), bidDto.getAmount());
 
         BidWithPaper bid = new BidWithPaper();
         bid.setAmount(bidDto.getAmount());
@@ -63,7 +67,13 @@ public class BidServices {
         bid.setDelete(true);
 
         iBidWithPaper.save(bid);
-        return "Bid placed successfully";
+
+        // Check if the new bid is the maximum bid
+
+
+        response.put("message", "Bid placed successfully");
+        response.put("isMaxBid", isMaxBid);
+        return response;
     }
 
     public List<CarBidsDto> getBidsForAllCars() {
