@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -102,5 +103,13 @@ public class CarService {
         car.setVisible(value);
         carRepo.save(car);
         return "update successfully";
+    }
+
+    public String updateAuctionTime(Long carId, LocalDateTime localDateTime) {
+
+        Car car = carRepo.findById(carId).orElseThrow();
+        car.setAuctionEndTime(localDateTime);
+        carRepo.save(car);
+        return "car AuctionEnd Time updated";
     }
 }

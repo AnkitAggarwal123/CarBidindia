@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -56,5 +57,10 @@ public class CarController_Admin {
 
     }
 
+    @PutMapping("auction/time/{carId}")
+    public ResponseEntity<?> updateAuctionTime(@PathVariable Long carId, @RequestParam LocalDateTime localDateTime){
+        String message =  carService.updateAuctionTime(carId, localDateTime);
+       return new ResponseEntity<>(message, HttpStatus.OK);
+    }
 
 }
