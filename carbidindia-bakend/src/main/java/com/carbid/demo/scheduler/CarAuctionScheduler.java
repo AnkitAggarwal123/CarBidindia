@@ -17,7 +17,7 @@ public class CarAuctionScheduler {
     @Autowired
     private ICar carRepository;
 
-    @Scheduled(fixedRate = 60000) // every 60 seconds
+    @Scheduled(fixedRate = 60000)
     @Transactional
     public void updateCarVisibility() {
         LocalDateTime now = LocalDateTime.now();
@@ -26,5 +26,10 @@ public class CarAuctionScheduler {
             car.setVisible(false);
             carRepository.save(car);
         }
+    }
+
+    @Scheduled(fixedRate = 5000)
+    public void check(){
+        System.out.println("hellow i am schedular");
     }
 }
