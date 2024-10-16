@@ -5,19 +5,38 @@ import com.carbid.demo.model.Car;
 import com.carbid.demo.model.CarImage;
 import com.carbid.demo.repo.ICar;
 import com.carbid.demo.repo.ICarImage;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ResponseEntity;
+import org.apache.pdfbox.pdmodel.PDDocument;
+
+import javax.imageio.ImageIO;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 @Service
 public class CarService {
@@ -94,8 +113,6 @@ public class CarService {
 
         return carDtos;
 
-
-
     }
 
     public String updateVisibility(boolean value, Long id) {
@@ -112,4 +129,73 @@ public class CarService {
         carRepo.save(car);
         return "car AuctionEnd Time updated";
     }
+
+    public ResponseEntity<InputStreamResource> downloadImages(Long id) {
+        try {
+            // Fetch the car by ID, or throw an exception with a custom message if not found
+            Car car = carRepo.findById(id).orElseThrow(() -> new NoSuchElementException("Car with ID " + id + " not found."));
+
+            List<String> imageUrls = car.getCarImages().stream()
+                    .map(carImage -> s3Service.getUnSignedUrl(carImage.getSavedName()))
+                    .toList();
+
+            // Create a new PDF document in memory
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            PDDocument pdfDoc = new PDDocument();
+
+            for (String imageUrl : imageUrls) {
+                // Fetch the image from the URL
+                BufferedImage bufferedImage = ImageIO.read(new URL(imageUrl));
+
+                // Convert BufferedImage to InputStream
+                ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
+                ImageIO.write(bufferedImage, "jpg", imageOutputStream); // Convert to JPEG format
+
+                // Create a PDImageXObject from InputStream
+                PDImageXObject pdImage = PDImageXObject.createFromByteArray(pdfDoc, imageOutputStream.toByteArray(), imageUrl);
+
+                // Add a new page for each image
+                PDPage page = new PDPage(new PDRectangle(PDRectangle.A4.getWidth(), PDRectangle.A4.getHeight()));
+                pdfDoc.addPage(page);
+
+                // Draw the image on the page
+                PDPageContentStream contentStream = new PDPageContentStream(pdfDoc, page);
+                contentStream.drawImage(pdImage, 20, 20, page.getMediaBox().getWidth() - 40, page.getMediaBox().getHeight() - 40);
+
+                // Add company name
+                contentStream.beginText();
+                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 30);// Set the font and size
+                contentStream.newLineAtOffset(20, page.getMediaBox().getHeight() - 50); // Position the text
+                contentStream.showText("BID CARS INDIA"); // Replace with your company name
+                contentStream.endText();
+
+                contentStream.close();
+            }
+
+            // Write the PDF content to the output stream
+            pdfDoc.save(out);
+            pdfDoc.close();
+
+            // Convert the output stream to an InputStreamResource
+            ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+
+            // Set response headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=CarImages_" + id + ".pdf");
+
+            // Return the PDF as a downloadable file or inline in the browser
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(new InputStreamResource(in));
+        } catch (NoSuchElementException e) {
+            // Handle the case where the car is not found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new InputStreamResource(new ByteArrayInputStream(("Car not found with ID " + id).getBytes())));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build(); // Handle other exceptions
+        }
+    }
+
 }

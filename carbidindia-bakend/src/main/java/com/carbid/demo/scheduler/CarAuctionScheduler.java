@@ -28,8 +28,4 @@ public class CarAuctionScheduler {
         }
     }
 
-    @Scheduled(fixedRate = 5000)
-    public void check(){
-        System.out.println("hellow i am schedular");
-    }
 }

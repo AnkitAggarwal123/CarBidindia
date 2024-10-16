@@ -9,6 +9,7 @@ import com.carbid.demo.service.RequestUserService;
 import com.carbid.demo.service.customUserService;
 import com.carbid.demo.service.userService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api")
 public class UserController_genric {
 
@@ -46,8 +48,8 @@ public class UserController_genric {
     @Autowired
     customUserService customUser;
 
-    @Autowired
-    RequestUserService requestUserService;
+
+    private final RequestUserService requestUserService;
 
     @PostMapping("/create/user")
     public ResponseEntity<String> createUser(@Valid @RequestBody UserDto userDto) {
