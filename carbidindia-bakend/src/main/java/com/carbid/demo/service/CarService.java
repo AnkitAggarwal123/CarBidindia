@@ -20,8 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,8 +34,6 @@ import org.springframework.http.ResponseEntity;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
 import javax.imageio.ImageIO;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 
 @Service
 public class CarService {
@@ -139,6 +136,11 @@ public class CarService {
                     .map(carImage -> s3Service.getUnSignedUrl(carImage.getSavedName()))
                     .toList();
 
+            InputStream imageStream = getClass().getClassLoader().getResourceAsStream("logo/logo.jpeg");
+
+            // Load the logo from a file or classpath
+            BufferedImage logoImage = ImageIO.read(imageStream); // Update the path to your logo file
+
             // Create a new PDF document in memory
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             PDDocument pdfDoc = new PDDocument();
@@ -147,27 +149,46 @@ public class CarService {
                 // Fetch the image from the URL
                 BufferedImage bufferedImage = ImageIO.read(new URL(imageUrl));
 
+                // Get original image width and height
+                float imageWidth = bufferedImage.getWidth();
+                float imageHeight = bufferedImage.getHeight();
+
                 // Convert BufferedImage to InputStream
                 ByteArrayOutputStream imageOutputStream = new ByteArrayOutputStream();
                 ImageIO.write(bufferedImage, "jpg", imageOutputStream); // Convert to JPEG format
 
-                // Create a PDImageXObject from InputStream
-                PDImageXObject pdImage = PDImageXObject.createFromByteArray(pdfDoc, imageOutputStream.toByteArray(), imageUrl);
+                // Create a PDImageXObject from InputStream for car image
+                PDImageXObject carImage = PDImageXObject.createFromByteArray(pdfDoc, imageOutputStream.toByteArray(), imageUrl);
 
-                // Add a new page for each image
-                PDPage page = new PDPage(new PDRectangle(PDRectangle.A4.getWidth(), PDRectangle.A4.getHeight()));
+                // Create a PDImageXObject from InputStream for logo
+                ByteArrayOutputStream logoOutputStream = new ByteArrayOutputStream();
+                ImageIO.write(logoImage, "jpeg", logoOutputStream); // Convert to JPEG format
+                PDImageXObject logo = PDImageXObject.createFromByteArray(pdfDoc, logoOutputStream.toByteArray(), "logo");
+
+                // Create a new page with the original car image size
+                PDPage page = new PDPage(new PDRectangle(imageWidth, imageHeight));
                 pdfDoc.addPage(page);
 
-                // Draw the image on the page
+                // Draw the car image on the page
                 PDPageContentStream contentStream = new PDPageContentStream(pdfDoc, page);
-                contentStream.drawImage(pdImage, 20, 20, page.getMediaBox().getWidth() - 40, page.getMediaBox().getHeight() - 40);
+                contentStream.drawImage(carImage, 0, 0, imageWidth, imageHeight); // Position car image with original dimensions
 
-                // Add company name
-                contentStream.beginText();
-                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 30);// Set the font and size
-                contentStream.newLineAtOffset(20, page.getMediaBox().getHeight() - 50); // Position the text
-                contentStream.showText("BID CARS INDIA"); // Replace with your company name
-                contentStream.endText();
+                // Dynamic logo scaling: Ensure the logo size is a percentage of the image size
+                float logoWidth = imageWidth * 0.15f; // Logo will be 15% of image width
+                float logoHeight = (logoImage.getHeight() * logoWidth) / logoImage.getWidth(); // Scale logo height proportionally
+
+                // Ensure the logo height doesn't exceed a reasonable portion of the image height
+                if (logoHeight > imageHeight * 0.15f) {
+                    logoHeight = imageHeight * 0.15f; // Logo will be at most 15% of image height
+                    logoWidth = (logoImage.getWidth() * logoHeight) / logoImage.getHeight(); // Adjust width accordingly
+                }
+
+                // Calculate dynamic logo position based on the image size
+                float logoXPosition = 20; // Fixed padding from the left
+                float logoYPosition = imageHeight - logoHeight - 20; // Fixed padding from the top
+
+                // Draw the logo on the image at the calculated position
+                contentStream.drawImage(logo, logoXPosition, logoYPosition, logoWidth, logoHeight);
 
                 contentStream.close();
             }
@@ -197,5 +218,9 @@ public class CarService {
             return ResponseEntity.status(500).build(); // Handle other exceptions
         }
     }
+
+
+
+
 
 }
