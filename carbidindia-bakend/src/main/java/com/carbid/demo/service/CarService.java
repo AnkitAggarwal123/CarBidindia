@@ -84,7 +84,8 @@ public class CarService {
 
     public List<CarDto> allCar() {
 
-        List<Car> cars = carRepo.findAll();
+        List<Car> cars = carRepo.findAllVisibleOrAuctionActive(LocalDateTime.now());
+
 
         List<CarDto> carDtos = cars.stream()
                 .map(car -> {
