@@ -4,7 +4,7 @@ import com.carbid.demo.dto.UserDto;
 import com.carbid.demo.jwt.JwtUtils;
 import com.carbid.demo.jwt.LoginRequest;
 import com.carbid.demo.jwt.LoginResponse;
-import com.carbid.demo.model.User;
+import com.carbid.demo.model.ApproveUser;
 import com.carbid.demo.service.RequestUserService;
 import com.carbid.demo.service.customUserService;
 import com.carbid.demo.service.userService;
@@ -81,7 +81,7 @@ public class UserController_genric {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        LoginResponse response = new LoginResponse(userDetails.getUsername(), roles, jwtToken, ((User) userDetails).getName(),((User) userDetails).getId());
+        LoginResponse response = new LoginResponse(userDetails.getUsername(), roles, jwtToken, ((ApproveUser) userDetails).getName(),((ApproveUser) userDetails).getId());
 
         return ResponseEntity.ok(response);
     }
@@ -106,8 +106,8 @@ public class UserController_genric {
                 token,
                 userDetails.getUsername(),
                 roles,
-                ((User) userDetails).getName(),
-                ((User) userDetails).getId()
+                ((ApproveUser) userDetails).getName(),
+                ((ApproveUser) userDetails).getId()
         );
 
         return ResponseEntity.ok(response);

@@ -7,11 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface IBidWithPaper extends JpaRepository<BidWithPaper, Long> {
-    List<BidWithPaper> findAllByCarIdAndUserId(Long id, Long id1);
-
-    Integer countByCarIdAndUserId(Long carId, Long userId);
 
     List<BidWithPaper> findAllByCarId(Long carId);
 
-    List<BidWithPaper> findByUserEmail(String name);
+    List<BidWithPaper> findAllByCar_IdAndApproveUser_Id(Long carId, Long userId);
+
+    Integer countByCar_IdAndApproveUser_Id(Long carId, Long userId);
+
+//    List<BidWithPaper> findAllByCar_Id(Long carId);
+
+    List<BidWithPaper> findByApproveUser_Email(String email);
 }

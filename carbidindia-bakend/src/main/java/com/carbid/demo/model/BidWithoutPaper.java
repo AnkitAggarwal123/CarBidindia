@@ -26,7 +26,7 @@ public class BidWithoutPaper extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private ApproveUser approveUser;
 
     private boolean isDelete;
 }

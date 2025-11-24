@@ -37,7 +37,7 @@ public class BidServices {
     public Map<String, Object> placeBid(BidDto bidDto, String userName) {
         Map<String, Object> response = new HashMap<>();
 
-        User user = iUser.findByEmail(userName);
+        ApproveUser approveUser = iUser.findByEmail(userName);
 
         Car car = iCar.findById(bidDto.getCarId())
                 .orElseThrow(() -> new RuntimeException("Car not found"));
@@ -49,7 +49,7 @@ public class BidServices {
         }
 
         // Retrieve all bids placed by the user on the specific car
-        List<BidWithPaper> userBids = iBidWithPaper.findAllByCarIdAndUserId(car.getId(), user.getId());
+        List<BidWithPaper> userBids = iBidWithPaper.findAllByCar_IdAndApproveUser_Id(car.getId(), approveUser.getId());
 
         // Check if the user has already placed 20 bids on this car
         if (userBids.size() >= 20) {
@@ -62,7 +62,7 @@ public class BidServices {
 
         BidWithPaper bid = new BidWithPaper();
         bid.setAmount(bidDto.getAmount());
-        bid.setUser(user);
+        bid.setApproveUser(approveUser);
         bid.setCar(car);
         bid.setDelete(true);
 
@@ -85,7 +85,7 @@ public class BidServices {
         for (Car car : cars) {
             List<BidDetailsDto> bidDtos = bids.stream()
                     .filter(bid -> bid.getCar().getId().equals(car.getId()))
-                    .map(bid -> new BidDetailsDto(bid.getId(), bid.getAmount(), bid.getUser().getName(), bid.getCreatedAt()))
+                    .map(bid -> new BidDetailsDto(bid.getId(), bid.getAmount(), bid.getApproveUser().getName(), bid.getCreatedAt()))
                     .sorted((b1, b2) -> b2.getAmount().compareTo(b1.getAmount())) // Sort by amount in descending order
                     .collect(Collectors.toList());
 
@@ -98,11 +98,11 @@ public class BidServices {
     public List<CarBidCountDTO> getAllCarBidCountsForUser(String userName) {
         List<Car> allCars = iCar.findAll();
 
-        User user = iUser.findByEmail(userName);
+        ApproveUser approveUser = iUser.findByEmail(userName);
 
         return allCars.stream()
                 .map(car -> {
-                    Integer bidCount = iBidWithPaper.countByCarIdAndUserId(car.getId(), user.getId());
+                    Integer bidCount = iBidWithPaper.countByCar_IdAndApproveUser_Id(car.getId(), approveUser.getId());
                     return new CarBidCountDTO(car.getId(), car.getCarName(), bidCount);
                 })
                 .collect(Collectors.toList());
@@ -153,7 +153,7 @@ public class BidServices {
     public List<CommonBidDto> getWinningBid(String name) {
 
 
-        List<BidWithPaper> bidWithPapers = iBidWithPaper.findByUserEmail(name);
+        List<BidWithPaper> bidWithPapers = iBidWithPaper.findByApproveUser_Email(name);
 
         List<BidWithPaper> winningBid = bidWithPapers.stream().filter((bid)-> iWinnerWithPaper.existsByBidWithPaper(bid)).collect(Collectors.toList());
 
@@ -187,7 +187,7 @@ public class BidServices {
     }
 
     public List<CommonBidDto> getAllWaitingBid(String name) {
-        List<BidWithPaper> bid = iBidWithPaper.findByUserEmail(name);
+        List<BidWithPaper> bid = iBidWithPaper.findByApproveUser_Email(name);
 
         if (bid == null || bid.isEmpty()) {
             return Collections.emptyList();

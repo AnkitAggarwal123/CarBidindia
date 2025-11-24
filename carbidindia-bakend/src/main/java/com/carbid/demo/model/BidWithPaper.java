@@ -23,7 +23,7 @@ public class BidWithPaper extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private ApproveUser approveUser;
 
     private boolean isDelete;
 

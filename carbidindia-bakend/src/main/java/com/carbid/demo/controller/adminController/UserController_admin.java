@@ -1,7 +1,7 @@
 package com.carbid.demo.controller.adminController;
 
+import com.carbid.demo.model.ApproveUser;
 import com.carbid.demo.model.RequestUser;
-import com.carbid.demo.model.User;
 import com.carbid.demo.service.userService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,7 +23,7 @@ public class UserController_admin {
     userService userSer;
 
     @GetMapping("/allusers")
-    public List<User> allUser(){
+    public List<ApproveUser> allUser(){
         return userSer.getAllUser();
     }
 

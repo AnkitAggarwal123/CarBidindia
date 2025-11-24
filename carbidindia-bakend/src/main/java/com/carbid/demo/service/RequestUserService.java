@@ -2,7 +2,6 @@ package com.carbid.demo.service;
 
 import com.carbid.demo.dto.UserDto;
 import com.carbid.demo.model.RequestUser;
-import com.carbid.demo.model.User;
 import com.carbid.demo.repo.IRequestUser;
 import com.carbid.demo.repo.IUser;
 import org.springframework.beans.factory.annotation.Autowired;

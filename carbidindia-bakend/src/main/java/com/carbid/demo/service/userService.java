@@ -1,8 +1,7 @@
 package com.carbid.demo.service;
 
-import com.carbid.demo.dto.UserDto;
+import com.carbid.demo.model.ApproveUser;
 import com.carbid.demo.model.RequestUser;
-import com.carbid.demo.model.User;
 import com.carbid.demo.repo.IRequestUser;
 import com.carbid.demo.repo.IUser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,14 +30,14 @@ public class userService {
         }
 
 
-        User user = new User();
-        user.setEmail(requestUser.getEmail());
-        user.setName(requestUser.getName());
-        user.setPassword(requestUser.getPassword());
-        user.setLocation(requestUser.getLocation());
-        user.setRole(requestUser.getRole());
-        user.setPhoneNumber(requestUser.getPhoneNumber());
-        iUser.save(user);
+        ApproveUser approveUser = new ApproveUser();
+        approveUser.setEmail(requestUser.getEmail());
+        approveUser.setName(requestUser.getName());
+        approveUser.setPassword(requestUser.getPassword());
+        approveUser.setLocation(requestUser.getLocation());
+        approveUser.setRole(requestUser.getRole());
+        approveUser.setPhoneNumber(requestUser.getPhoneNumber());
+        iUser.save(approveUser);
         iRequestUser.delete(requestUser);
         return "user approved successfully";
     }
@@ -48,7 +47,7 @@ public class userService {
         return new BCryptPasswordEncoder();
     }
 
-    public List<User> getAllUser() {
+    public List<ApproveUser> getAllUser() {
         return iUser.findAll();
     }
 
